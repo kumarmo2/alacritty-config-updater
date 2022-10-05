@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fs};
 use serde::{Serialize, Deserialize};
 use serde_yaml::Value;
-use clap::{Parser, ValueEnum};
+use clap::{Parser};
 
 /*
 * NOTE: 
@@ -12,16 +12,9 @@ use clap::{Parser, ValueEnum};
 
 
 /*
-* - Increment/Decrement Window Opacity.
-*   - From cmd args, accept operationType (increment/decrement)
-*   - read the config file into config struct. Since the config has many more options
-*     for, now our struct will have only with which we are concerned. To capture,
-*     rest of the fields, we can use the serde's flatten feature.
-*   - Once the config has been read into the struct, do some basic validations
-*       - if property exists or not.
-*       - if not, do we want to assume a default value.
-*   - Once you have the current value, do the increment/decrement operation.
-*
+* - TODOs:
+*   - making sure the opacity is always between [0, 1]
+*   - get rid of all the unwraps and execpt calls which can panic.
 * */
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -46,9 +39,7 @@ struct Cli {
 
 fn main() {
     let cli = Cli::parse();
-    println!("Hello, world!");
     let config_path = "/home/manya/.config/alacritty/alacritty.yml";
-    println!("{}", cli.opacity);
 
     let config_str;
 
@@ -69,15 +60,18 @@ fn main() {
             return;
         }
     }
-
-    // println!("config parsed successfullly, config: {:?}", config);
-    println!("config parsed successfullly");
-
     {
         let mut window = config.window.as_mut().unwrap();
         // let opacity = window.opacity.unwrap();
-        window.opacity = Some(window.opacity.unwrap() + cli.opacity);
+        let mut new_opacity = window.opacity.unwrap() + cli.opacity;
+        if new_opacity < 0.0 {
+            new_opacity = 0.0;
+        }
+        if new_opacity > 1.0 {
+            new_opacity = 1.0
+        }
+
+        window.opacity = Some(new_opacity);
     }
-    // println!("new config: {:?}", config);
     fs::write(config_path, serde_yaml::to_string(&config).unwrap()).unwrap();
 }
