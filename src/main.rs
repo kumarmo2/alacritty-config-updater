@@ -1,6 +1,7 @@
 use std::{collections::HashMap, fs};
 use serde::{Serialize, Deserialize};
 use serde_yaml::Value;
+use clap::{Parser, ValueEnum};
 
 /*
 * NOTE: 
@@ -35,9 +36,19 @@ struct AlacrittyConfig {
     window: Option<WindowConfig>,
 }
 
+
+#[derive(Debug, Parser)]
+#[command(author, version, about, long_about = None)]
+struct Cli {
+    #[arg(short, long = "opacity", allow_negative_numbers = true)]
+    opacity: f32,
+}
+
 fn main() {
+    let cli = Cli::parse();
     println!("Hello, world!");
     let config_path = "/home/manya/.config/alacritty/alacritty.yml";
+    println!("{}", cli.opacity);
 
     let config_str;
 
@@ -65,8 +76,8 @@ fn main() {
     {
         let mut window = config.window.as_mut().unwrap();
         // let opacity = window.opacity.unwrap();
-        window.opacity = Some(0.0);
+        window.opacity = Some(window.opacity.unwrap() + cli.opacity);
     }
-    println!("new config: {:?}", config);
+    // println!("new config: {:?}", config);
     fs::write(config_path, serde_yaml::to_string(&config).unwrap()).unwrap();
 }
