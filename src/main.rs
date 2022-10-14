@@ -13,13 +13,19 @@ use clap::{Parser};
 
 /*
 * - TODOs:
-*   - making sure the opacity is always between [0, 1]
 *   - get rid of all the unwraps and execpt calls which can panic.
+*   - right now, once this program runs, the order of keys in the config files
+*     changes. so if you check the git diff, it will show the whole file changed.
+*     even though we are only updating the window.opacity value, but since we are not maintaining
+*     the order of keys while writing back to the file, we are seeing this issue. IDEALLY, WE WOULD
+*     WANT even the order to be same as before.
 * */
 
 #[derive(Debug, Serialize, Deserialize)]
 struct WindowConfig {
-    opacity : Option<f32>
+    opacity : Option<f32>,
+    #[serde(flatten)]
+    others: HashMap<String, Value>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
